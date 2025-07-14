@@ -1,6 +1,7 @@
 name: 'Setup openpilot Environment (Native)'
 description: 'Sets up the openpilot CI environment on a native runner with aggressive caching for apt and pip.'
 
+# Accept the 'is_retried' input from the wrapper action to prevent parsing errors.
 inputs:
   is_retried:
     description: 'Input from retry wrapper, not used in this action.'
@@ -26,6 +27,7 @@ runs:
           python3-crcmod
           sudo tzdata locales ssh pulseaudio xvfb x11-xserver-utils
           gnome-screenshot python3-tk python3-dev
+        # Increment version to force a cache refresh that includes the new packages
         version: 1.4
 
     - name: Set up Python and cache pip dependencies
@@ -40,6 +42,8 @@ runs:
     - name: Install Python dependencies
       shell: bash
       run: |
+        # The crcmod package build emits a deprecation warning which fails the build
+        # because PYTHONWARNINGS=error is set globally. We temporarily ignore it for this command.
         PYTHONWARNINGS=ignore::DeprecationWarning python -m pip install .
       env:
         PYTHONUNBUFFERED: "1"
